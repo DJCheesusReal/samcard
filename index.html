@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE TERMINAL LOGON</title>
+    <style>
+        :root {
+            --term-green: #00ff00;
+            --term-dark: #050505;
+            --term-glow: rgba(0, 255, 0, 0.2);
+        }
+
+        body {
+            background-color: var(--term-dark);
+            color: var(--term-green);
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            /* Subtle CRT scanline effect */
+            background-image: linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px);
+            background-size: 100% 3px;
+        }
+
+        .terminal-box {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--term-green);
+            padding: 40px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 0 15px var(--term-glow);
+        }
+
+        h1 {
+            font-size: 22px;
+            text-shadow: 0 0 5px var(--term-green);
+            margin-top: 0;
+            border-bottom: 1px dashed var(--term-green);
+            padding-bottom: 15px;
+            text-align: center;
+        }
+
+        .clue {
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 25px 0;
+            color: #aaa;
+        }
+
+        .cipher-box {
+            font-size: 16px;
+            background: #000;
+            padding: 20px;
+            border: 1px solid #333;
+            margin: 20px 0;
+            word-wrap: break-word;
+        }
+
+        .cipher-line {
+            margin: 5px 0;
+        }
+
+        .label {
+            color: #555;
+            font-weight: bold;
+        }
+
+        .val {
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        input {
+            background: #000;
+            color: var(--term-green);
+            border: 1px solid var(--term-green);
+            padding: 15px;
+            font-size: 18px;
+            width: calc(100% - 32px);
+            text-align: center;
+            text-transform: uppercase;
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            box-shadow: 0 0 10px var(--term-glow);
+            background: #0a110a;
+        }
+
+        button {
+            background: transparent;
+            color: var(--term-green);
+            border: 1px solid var(--term-green);
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            background: var(--term-green);
+            color: #000;
+        }
+
+        .hint-btn {
+            font-size: 12px;
+            border: none;
+            background: none;
+            color: #555;
+            text-decoration: underline;
+            margin-top: 15px;
+            padding: 0;
+            width: auto;
+            cursor: pointer;
+        }
+        
+        .hint-btn:hover {
+            color: #888;
+            background: none;
+        }
+
+        .hidden { display: none; }
+
+        .mission-directive {
+            margin-top: 30px;
+            border-top: 1px dashed #ff8800;
+            padding-top: 25px;
+            color: #ff8800;
+            font-size: 17px;
+            line-height: 1.8;
+            text-shadow: 0 0 5px rgba(255, 136, 0, 0.4);
+            animation: fadeIn 1.5s ease-in;
+        }
+
+        .error {
+            color: #ff0000;
+            margin-top: 15px;
+            text-align: center;
+            text-shadow: 0 0 5px #ff0000;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="terminal-box">
+        <h1>[ SYSTEM LOCKED ]</h1>
+        
+        <div class="clue">
+            Encrypted payload detected. To unlock this terminal and receive your final directive, you must decrypt the payload using the specified algorithm.
+        </div>
+
+        <div class="cipher-box">
+            <div class="cipher-line"><span class="label">METHOD:</span> <span class="val">BITWISE XOR</span></div>
+            <div class="cipher-line"><span class="label">KEY (DEC):</span> <span class="val">11</span></div>
+            <br>
+            <div class="cipher-line"><span class="label">PAYLOAD (HEX):</span></div>
+            <div class="cipher-line val" style="color: #0f0; margin-top: 10px;">
+                4E 48 47 42 5B 58 4E 2B 5F 43 4E 2B 58 5E 45
+            </div>
+        </div>
+
+        <input type="text" id="passphrase-input" placeholder="ENTER DECRYPTED PAYLOAD" autocomplete="off">
+        <button onclick="verifyPassphrase()">SUBMIT</button>
+        
+        <div style="text-align: center;">
+            <button class="hint-btn" onclick="showHint()">REQUEST FIELD HINT</button>
+        </div>
+        <div id="hint-text" class="clue hidden" style="font-size: 13px; text-align: center;">
+            <strong>HINT:</strong> Convert the HEX values to Decimal or Binary. Then, apply a mathematical XOR to each byte using the Key '11'. Finally, convert the resulting bytes back to ASCII characters. (Tools like 'CyberChef' are recommended for field agents).
+        </div>
+
+        <div id="error-msg" class="error hidden">ERR: INVALID CHECKSUM. ACCESS DENIED.</div>
+        <div id="success-msg" class="mission-directive hidden"></div>
+    </div>
+
+    <script>
+        function showHint() {
+            document.getElementById('hint-text').classList.remove('hidden');
+        }
+
+        function verifyPassphrase() {
+            const input = document.getElementById('passphrase-input').value.toUpperCase().trim().replace(/\s+/g, ' ');
+            const errorMsg = document.getElementById('error-msg');
+            const successMsg = document.getElementById('success-msg');
+
+            // The secret answer is completely hidden from the source code.
+            // It uses a cryptographic shift vector to verify the input without revealing the string.
+            // (The correct answer is ECLIPSE THE SUN)
+            const authVector = [86, 84, 93, 90, 97, 100, 86, 49, 101, 89, 86, 49, 100, 102, 95];
+            
+            let valid = input.length === authVector.length;
+            if (valid) {
+                for (let i = 0; i < input.length; i++) {
+                    if (input.charCodeAt(i) + 17 !== authVector[i]) {
+                        valid = false;
+                        break;
+                    }
+                }
+            }
+
+            if (valid) {
+                errorMsg.classList.add('hidden');
+                
+                // The final instructions ("Locate the ginger one...") are also encrypted so they 
+                // cannot be read by inspecting the HTML file. They decrypt dynamically upon success.
+                const encMsg = "=i4?BDDFTT!HSBOUFE=0i4?=cs?Mpdbuf!#uif!hjohfs!pof#/=cs?Mppl!uifn!jo!uif!fzf/=cs?Tbz!uif!qisbtf/=cs?Xbju/";
+                let dec = "";
+                for(let i = 0; i < encMsg.length; i++) {
+                    dec += String.fromCharCode(encMsg.charCodeAt(i) - 1);
+                }
+                
+                successMsg.innerHTML = dec;
+                successMsg.classList.remove('hidden');
+                
+                document.getElementById('passphrase-input').disabled = true;
+                document.querySelectorAll('button').forEach(b => b.disabled = true);
+            } else {
+                successMsg.classList.add('hidden');
+                errorMsg.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    errorMsg.classList.add('hidden');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
